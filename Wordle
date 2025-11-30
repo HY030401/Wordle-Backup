@@ -1,0 +1,444 @@
+#ifndef MY_HEADER_H
+#define MY_HEADER_H
+
+
+
+
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <ctime>
+#include <vector>
+#include <string>
+#include <iomanip>
+#include <limits>
+
+
+
+
+//git init
+//git add .
+//git commit -m "example"
+
+
+
+
+// Function prototypes
+void displayMainMenu();
+void displayHowToPlay();
+void displayStatistics();
+void resetStatistics();
+void playGame();
+void displayKeyboardViewer();
+
+
+#endif // MY_HEADER_H
+
+
+
+
+
+
+
+
+int main() {
+    int choice;
+
+
+
+
+
+
+    while (true) {
+        displayMainMenu();
+        std::cin >> choice;
+
+
+
+
+        if (choice == 5) {
+            std::cout << "Exiting the game. Goodbye!" << std::endl;
+            break; // 跳出循环
+        }
+
+
+
+
+        switch (choice) {
+            case 1:
+                std::cout << "Starting the game..." << std::endl;
+                playGame();
+                break;
+            case 2:
+                displayHowToPlay();
+                break;
+            case 3:
+                displayStatistics();
+                break;
+            case 4:
+                resetStatistics();
+                break;
+            default:
+                std::cout << "Invalid choice. Please try again." << std::endl;
+                break;
+        }
+
+
+        // 清除输入缓冲区
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+
+
+
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+void displayMainMenu() {
+    std::cout << "=========================" << std::endl;
+    std::cout << "    WELCOME TO WORDLE" << std::endl;
+    std::cout << "=========================" << std::endl;
+    std::cout << std::endl;
+    std::cout << "1. Play Wordle" << std::endl;
+    std::cout << "2. How to Play" << std::endl;
+    std::cout << "3. Statistics Summary" << std::endl;
+    std::cout << "4. Reset Statistics" << std::endl;
+    std::cout << "5. Exit" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Select an option: ";
+
+
+}
+
+
+
+
+
+
+void displayHowToPlay() {
+    std::cout << "=============================================" << std::endl;
+    std::cout << "                 HOW TO PLAY" << std::endl;
+    std::cout << "=============================================" << std::endl;
+    std::cout << "Guess the Wordle in 6 tries." << std::endl;
+    std::cout << std::endl;
+    std::cout << "HOW TO PLAY:" << std::endl;
+    std::cout << "- Each guess must be a valid 5 letter word." << std::endl;
+    std::cout << "- The color of the tiles will change to show" << std::endl;
+    std::cout << "  you how close your guess was to the word." << std::endl;
+    std::cout << std::endl;
+    std::cout << "Press [enter] to continue";
+    std::cin.ignore();  // Wait for the user to press Enter
+}
+
+
+
+
+void displayStatistics() {
+    // Load statistics from the file
+    std::ifstream statsFile("statistics.txt");
+    if (!statsFile.is_open()) {
+        std::cerr << "Error opening statistics file." << std::endl;
+        return;
+    }
+
+
+    int timesPlayed, totalAttempts, totalWins, currentStreak, longestStreak;
+    statsFile >> timesPlayed >> totalAttempts >> totalWins >> currentStreak >> longestStreak;
+
+
+    std::cout << "==========================" << std::endl;
+    std::cout << "    STATISTICS SUMMARY" << std::endl;
+    std::cout << "==========================" << std::endl;
+    std::cout << "Times Played:      " << timesPlayed << std::endl;
+    std::cout << "Average Attempts:  " << std::fixed << std::setprecision(1) << static_cast<double>(totalAttempts) / timesPlayed << std::endl;
+    std::cout << "Win Percentage:    " << std::fixed << std::setprecision(1) << (static_cast<double>(totalWins) / timesPlayed) * 100 << "%" << std::endl;
+    std::cout << "Current Streak:    " << currentStreak << std::endl;
+    std::cout << "Longest Streak:    " << longestStreak << std::endl;
+    std::cout << std::endl;
+    std::cout << "--------------------------" << std::endl;
+    std::cout << "WORD     ATTEMPTS      WIN" << std::endl;
+    std::cout << "--------------------------" << std::endl;
+
+
+    // Display individual word statistics
+    std::string word;
+    int attempts;
+    std::string win;
+    while (statsFile >> word >> attempts >> win) {
+        std::cout << std::setw(8) << word << std::setw(10) << attempts << std::setw(8) << win << std::endl;
+    }
+
+
+    statsFile.close();
+
+
+    // Display the result of the last game
+    std::ifstream lastGameFile("last_game.txt");
+    if (lastGameFile.is_open()) {
+        std::string lastWord;
+        int lastAttempts;
+        std::string lastWin;
+
+
+        lastGameFile >> lastWord >> lastAttempts >> lastWin;
+
+
+        std::cout << std::setw(8) << lastWord << std::setw(10) << lastAttempts << std::setw(8) << lastWin << std::endl;
+
+
+        lastGameFile.close();
+    } else {
+        std::cerr << "Error opening last game file." << std::endl;
+    }
+
+
+    // Wait for the user to press Enter
+    std::cout << "Press [enter] to continue";
+    std::cin.ignore();
+}
+
+
+
+
+
+
+
+
+
+
+void resetStatistics() {
+    // Reset statistics in the file
+    std::ofstream statsFile("statistics.txt");
+    if (!statsFile.is_open()) {
+        std::cerr << "Error opening statistics file." << std::endl;
+        return;
+    }
+
+
+    statsFile << "0 0 0 0 0";
+
+
+    statsFile.close();
+
+
+    // Clear last game record
+    std::ofstream lastGameFile("last_game.txt");
+    if (!lastGameFile.is_open()) {
+        std::cerr << "Error opening last game file." << std::endl;
+        return;
+    }
+
+
+    lastGameFile.close();
+
+
+    // Display the updated statistics
+    displayStatistics();
+}
+
+
+
+
+
+
+
+
+
+
+void updateStatistics(bool win, int attempts, const std::string& word) {
+    // Open the file in append mode to add new game results
+    std::ofstream statsFile("statistics.txt", std::ios::app);
+    if (!statsFile.is_open()) {
+        std::cerr << "Error opening statistics file for writing." << std::endl;
+        return;
+    }
+
+
+    // Write the new game result to the file
+    statsFile << word << " " << attempts << " " << (win ? "Yes" : "No") << std::endl;
+
+
+    statsFile.close();
+}
+
+
+
+
+
+
+
+
+void playGame() {
+    // Load words from the file
+    std::vector<std::string> words;
+    std::ifstream wordsFile("words.txt");
+    if (!wordsFile.is_open()) {
+        std::cerr << "Error opening words file." << std::endl;
+        return;
+    }
+
+
+    std::string word;
+    while (wordsFile >> word) {
+        words.push_back(word);
+    }
+
+
+    wordsFile.close();
+
+
+    // Select a random word
+    srand(static_cast<unsigned>(time(nullptr)));
+    std::string targetWord = words[rand() % words.size()];
+
+
+    // Game variables
+    const int maxAttempts = 6;
+    int attempts = 0;
+    bool guessed = false;
+
+
+    std::vector<char> correctLetters(targetWord.size(), ' ');
+    std::vector<bool> guessedLetters(26, false);
+    std::vector<std::string> displayResult(targetWord.size(), " ");
+
+
+    std::cout << "Guess the Wordle in 6 tries." << std::endl;
+
+
+    do {
+        // Display the current state of the word
+        for (int i = 0; i < targetWord.size(); ++i) {
+            std::cout << displayResult[i] << ' ';
+        }
+        std::cout << std::endl;
+
+
+        // Get user input
+        std::string guess;
+        std::cout << "Enter your guess: ";
+        std::cin >> guess;
+
+
+        // Initialize guessedLetters vector
+        std::vector<bool> guessedLetters(26, false);
+
+
+        // Validate the guess
+        if (guess.size() != targetWord.size()) {
+            std::cout << "Invalid guess. Must be a " << targetWord.size() << " letter word." << std::endl;
+            continue;
+        }
+
+
+        // Check each letter of the guess
+        for (int i = 0; i < targetWord.size(); ++i) {
+            if (guess[i] == targetWord[i]) {
+                correctLetters[i] = guess[i];
+                displayResult[i] = "\033[32m" + std::string(1, guess[i]) + " \033[0m";
+            } else if (targetWord.find(guess[i]) != std::string::npos) {
+                // Correct letter in wrong position (yellow)
+                displayResult[i] = "\033[33m" + std::string(1, guess[i]) + " \033[0m";
+            } else {
+                // Incorrect letter (gray)
+                displayResult[i] = "\033[37m" + std::string(1, guess[i]) + " \033[0m";
+            }
+
+
+            guessedLetters[guess[i] - 'A'] = true; // Mark guessed letter
+        }
+
+
+        // Check if the word is guessed
+        guessed = (std::string(correctLetters.begin(), correctLetters.end()) == targetWord);
+
+
+        ++attempts;
+
+
+    } while (!guessed && attempts < maxAttempts);
+
+
+    // Display the result
+    std::cout << std::endl;
+    if (guessed) {
+        std::cout << "Splendid!" << std::endl;
+    } else {
+        std::cout << "The word was: " << targetWord << std::endl;
+        std::cout << "Better luck next time!" << std::endl;
+    }
+
+
+    // Update statistics and save the result
+    updateStatistics(guessed, attempts, targetWord);
+
+
+    // Wait for the user to press Enter
+    std::cout << "Press [enter] to continue";
+    std::cin.ignore();
+}
+
+
+
+
+
+
+
+
+
+
+// Function to update statistics based on game result
+void updateStatistics(bool win, int attempts) {
+    // Load statistics from the file
+    std::ifstream statsFile("statistics.txt");
+    if (!statsFile.is_open()) {
+        std::cerr << "Error opening statistics file." << std::endl;
+        return;
+    }
+
+
+    int timesPlayed, totalAttempts, totalWins, currentStreak, longestStreak;
+    statsFile >> timesPlayed >> totalAttempts >> totalWins >> currentStreak >> longestStreak;
+
+
+    // Update statistics
+    ++timesPlayed;
+    totalAttempts += attempts;
+    totalWins += win ? 1 : 0;
+    currentStreak = win ? currentStreak + 1 : 0;
+    longestStreak = std::max(longestStreak, currentStreak);
+
+
+
+
+    statsFile.close();
+
+
+       // Write updated statistics back to the file
+    std::ofstream outFile("statistics.txt");
+    if (!outFile.is_open()) {
+        std::cerr << "Error opening statistics file for writing." << std::endl;
+        return;
+    }
+
+
+    outFile << timesPlayed << " " << totalAttempts << " " << totalWins << " " << currentStreak << " " << longestStreak;
+
+
+    outFile.close();
+}
+
+
+void displayKeyboardViewer() {
+
+
+
+
+}
